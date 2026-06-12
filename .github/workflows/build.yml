@@ -1,4 +1,4 @@
-name: Build iOS App
+name: Build iOS App with Network Extension
 
 on:
   workflow_dispatch:
@@ -6,69 +6,61 @@ on:
 jobs:
   build:
     runs-on: macos-14
-
+    
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
     - name: Setup Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
-        go-version: '1.20'
+        go-version: 'stable'
 
-    - name: Build XCFramework
+    - name: Build for iOS device
       run: |
-        mkdir -p build/ios build/sim
-        SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
-        CC_PATH=$(xcrun --sdk iphoneos -f clang)
+        mkdir -p build/ios
         CGO_ENABLED=1 GOOS=ios GOARCH=arm64 \
-          CC="$CC_PATH" \
-          CGO_CFLAGS="-isysroot $SDK_PATH -arch arm64 -mios-version-min=16.0" \
-          CGO_LDFLAGS="-isysroot $SDK_PATH -arch arm64 -mios-version-min=16.0" \
+          CC=$(xcrun --sdk iphoneos -f clang) \
+          CFLAGS="-isysroot $(xcrun --sdk iphoneos --show-sdk-path) -arch arm64 -mios-version-min=16.0" \
           go build -v -buildmode=c-archive -o build/ios/libtgwsproxy.a .
 
-        SIM_SDK_PATH=$(xcrun --sdk iphonesimulator --show-sdk-path)
-        SIM_CC_PATH=$(xcrun --sdk iphonesimulator -f clang)
+    - name: Build for iOS Simulator
+      run: |
+        mkdir -p build/sim
         CGO_ENABLED=1 GOOS=ios GOARCH=arm64 \
-          CC="$SIM_CC_PATH" \
-          CGO_CFLAGS="-isysroot $SIM_SDK_PATH -arch arm64 -mios-simulator-version-min=16.0" \
-          CGO_LDFLAGS="-isysroot $SIM_SDK_PATH -arch arm64 -mios-simulator-version-min=16.0" \
+          CC=$(xcrun --sdk iphonesimulator -f clang) \
+          CFLAGS="-isysroot $(xcrun --sdk iphonesimulator --show-sdk-path) -arch arm64 -mios-simulator-version-min=16.0" \
           go build -v -buildmode=c-archive -o build/sim/libtgwsproxy.a .
 
+    - name: Create XCFramework
+      run: |
         xcodebuild -create-xcframework \
           -library build/ios/libtgwsproxy.a -headers include \
           -library build/sim/libtgwsproxy.a -headers include \
           -output build/TgWsProxy.xcframework
 
-    - name: Build .app
+    - name: Build App
       run: |
-        xcodebuild archive \
-          -project TgWsProxy.xcodeproj \
+        xcodebuild -project TgWsProxy.xcodeproj \
           -scheme TgWsProxy \
           -configuration Release \
-          -archivePath build/TgWsProxy.xcarchive \
-          CODE_SIGN_IDENTITY="-" \
+          -sdk iphoneos \
+          -derivedDataPath build/DerivedData \
+          CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO \
-          AD_HOC_CODE_SIGNING_ALLOWED=YES \
-          "LIBRARY_SEARCH_PATHS=$(pwd)/build/ios" \
-          "OTHER_LDFLAGS=$(pwd)/build/ios/libtgwsproxy.a"
+          || true
 
-    - name: Create .ipa
+    - name: Package artifacts
       run: |
-        mkdir -p build/ipa/Payload
-        cp -r build/TgWsProxy.xcarchive/Products/Applications/TgWsProxy.app build/ipa/Payload/
-        cd build/ipa
-        zip -r ../TgWsProxy.ipa Payload/
-
-    - name: Upload IPA
-      uses: actions/upload-artifact@v4
-      with:
-        name: TgWsProxy-ipa
-        path: build/TgWsProxy.ipa
+        cd build
+        zip -r ../TgWsProxy-XCFramework.zip TgWsProxy.xcframework
+        if [ -d "DerivedData/Build/Products/Release-iphoneos" ]; then
+          zip -r ../TgWsProxy-App.zip DerivedData/Build/Products/Release-iphoneos/
+        fi
 
     - name: Upload XCFramework
       uses: actions/upload-artifact@v4
       with:
         name: TgWsProxy-XCFramework
-        path: build/TgWsProxy.xcframework
+        path: TgWsProxy-XCFramework.zip
+        if-no-files-found: error

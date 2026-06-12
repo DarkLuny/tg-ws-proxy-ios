@@ -53,15 +53,19 @@
     </dict>
     <key>NSLocalNetworkUsageDescription</key>
     <string>TG WS Proxy использует локальную сеть для работы MTProto-прокси для Telegram.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>TG WS Proxy использует геолокацию для поддержания работы в фоне.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>TG WS Proxy использует геолокацию для поддержания работы в фоне.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>TG WS Proxy использует геолокацию для поддержания работы в фоне.</string>
     <key>UIBackgroundModes</key>
     <array>
-        <string>voip</string>
-        <string>processing</string>
         <string>audio</string>
-        <string>bluetooth-central</string>
-        <string>external-accessory</string>
+        <string>location</string>
+        <string>processing</string>
+        <string>fetch</string>
+        <string>remote-notification</string>
     </array>
-    <key>UIVOIPBackgroundModes</key>
-    <true/>
 </dict>
 </plist>

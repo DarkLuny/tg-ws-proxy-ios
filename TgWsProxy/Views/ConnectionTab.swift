@@ -1,10 +1,12 @@
 import SwiftUI
+import CoreLocation
 
 struct ConnectionTab: View {
     @EnvironmentObject var proxyManager: ProxyManager
     @EnvironmentObject var settings: SettingsStore
 
     @State private var isStarting = false
+    @State private var locationManager = CLLocationManager()
 
     private var statusText: String {
         if isStarting { return "Подключение..." }
@@ -125,6 +127,7 @@ struct ConnectionTab: View {
             proxyManager.stop()
             isStarting = false
         } else {
+            requestBackgroundPermissions()
             isStarting = true
             let dcIps = settings.buildDcIps()
             let port = Int(settings.port) ?? 1443
@@ -146,6 +149,11 @@ struct ConnectionTab: View {
                 }
             }
         }
+    }
+    
+    private func requestBackgroundPermissions() {
+        locationManager.requestAlwaysAuthorization()
+        locationManager.requestWhenInUseAuthorization()
     }
 
     private func openTelegram() {
