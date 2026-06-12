@@ -67,7 +67,7 @@ jobs:
           CODE_SIGNING_ALLOWED=NO \
           AD_HOC_CODE_SIGNING_ALLOWED=YES \
           "LIBRARY_SEARCH_PATHS=$(pwd)/build/ios" \
-          "OTHER_LDFLAGS=-l:libtgwsproxy.a"
+          "OTHER_LDFLAGS=$(pwd)/build/ios/libtgwsproxy.a"
 
     - name: Create .ipa
       run: |
