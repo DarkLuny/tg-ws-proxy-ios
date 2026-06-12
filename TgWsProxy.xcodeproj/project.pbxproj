@@ -28,6 +28,7 @@
 			proxyType = 1;
 			remoteGlobalIDString = A5000001;
 			remoteInfo = TgWsProxy;
+			target = A5000001;
 		};
 		A3000002 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -35,8 +36,22 @@
 			proxyType = 1;
 			remoteGlobalIDString = A5000001;
 			remoteInfo = TgWsProxy;
+			target = A5000001;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		A3100001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A5000001 /* TgWsProxy */;
+			targetProxy = A3000001 /* PBXContainerItemProxy */;
+		};
+		A3100002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A5000001 /* TgWsProxy */;
+			targetProxy = A3000002 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXFileReference section */
 		A2000001 /* TgWsProxyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TgWsProxyApp.swift; sourceTree = "<group>"; };
@@ -214,7 +229,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				A3000001 /* PBXContainerItemProxy */,
+				A3100001 /* PBXTargetDependency */,
 			);
 			name = TgWsProxyTests;
 			productName = TgWsProxyTests;
@@ -232,7 +247,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				A3000002 /* PBXContainerItemProxy */,
+				A3100002 /* PBXTargetDependency */,
 			);
 			name = TgWsProxyUITests;
 			productName = TgWsProxyUITests;
