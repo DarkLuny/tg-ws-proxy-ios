@@ -2,6 +2,7 @@ package main
 
 /*
 #include <stdlib.h>
+#include <stdio.h>
 #include <signal.h>
 #ifdef __APPLE__
 #include <os/log.h>
