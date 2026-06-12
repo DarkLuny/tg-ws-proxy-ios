@@ -120,7 +120,6 @@
 				A200000D /* Info.plist */,
 				A200000E /* Entitlements.entitlements */,
 				A200000F /* Assets.xcassets */,
-				A2000002 /* ContentView.swift */,
 				A7000008 /* Views */,
 				A7000009 /* Models */,
 				A700000A /* Theme */,
