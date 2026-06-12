@@ -173,6 +173,7 @@
 		A7000008 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				A2000002 /* ContentView.swift */,
 				A2000003 /* ConnectionTab.swift */,
 				A2000004 /* SettingsTab.swift */,
 				A2000005 /* LogsTab.swift */,
