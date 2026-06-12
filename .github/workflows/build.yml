@@ -22,16 +22,33 @@ jobs:
       run: go version
 
     - name: Build XCFramework
+      env:
+        IOS_SDK: /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk
+        SIM_SDK: /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk
       run: |
         mkdir -p build/ios build/sim
+        echo "iPhoneOS SDK: $(xcrun --sdk iphoneos --show-sdk-path)"
+        echo "Simulator SDK: $(xcrun --sdk iphonesimulator --show-sdk-path)"
+        
+        echo "--- Building for iOS device ---"
+        SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+        CC_PATH=$(xcrun --sdk iphoneos -f clang)
         CGO_ENABLED=1 GOOS=ios GOARCH=arm64 \
-          CC=$(xcrun --sdk iphoneos -f clang) \
-          CFLAGS="-isysroot $(xcrun --sdk iphoneos --show-sdk-path) -arch arm64 -mios-version-min=16.0" \
+          CC="$CC_PATH" \
+          CGO_CFLAGS="-isysroot $SDK_PATH -arch arm64 -mios-version-min=16.0" \
+          CGO_LDFLAGS="-isysroot $SDK_PATH -arch arm64 -mios-version-min=16.0" \
           go build -v -buildmode=c-archive -o build/ios/libtgwsproxy.a .
+
+        echo "--- Building for iOS Simulator ---"
+        SIM_SDK_PATH=$(xcrun --sdk iphonesimulator --show-sdk-path)
+        SIM_CC_PATH=$(xcrun --sdk iphonesimulator -f clang)
         CGO_ENABLED=1 GOOS=ios GOARCH=arm64 \
-          CC=$(xcrun --sdk iphonesimulator -f clang) \
-          CFLAGS="-isysroot $(xcrun --sdk iphonesimulator --show-sdk-path) -arch arm64 -mios-simulator-version-min=16.0" \
-          go build -buildmode=c-archive -o build/sim/libtgwsproxy.a .
+          CC="$SIM_CC_PATH" \
+          CGO_CFLAGS="-isysroot $SIM_SDK_PATH -arch arm64 -mios-simulator-version-min=16.0" \
+          CGO_LDFLAGS="-isysroot $SIM_SDK_PATH -arch arm64 -mios-simulator-version-min=16.0" \
+          go build -v -buildmode=c-archive -o build/sim/libtgwsproxy.a .
+
+        echo "--- Creating XCFramework ---"
         xcodebuild -create-xcframework \
           -library build/ios/libtgwsproxy.a -headers include \
           -library build/sim/libtgwsproxy.a -headers include \
