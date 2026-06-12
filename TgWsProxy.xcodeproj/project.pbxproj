@@ -19,6 +19,7 @@
 		A100000A /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000A; };
 		A100000B /* TgWsProxyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000B; };
 		A100000C /* TgWsProxyUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000C; };
+		A100000D /* BackgroundManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000015; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,6 +75,7 @@
 		A2000012 /* TgWsProxy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TgWsProxy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2000013 /* TgWsProxyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TgWsProxyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2000014 /* TgWsProxyUITests-Runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TgWsProxyUITests-Runner.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A2000015 /* BackgroundManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,6 +142,7 @@
 			children = (
 				A2000007 /* ProxyManager.swift */,
 				A2000008 /* LogManager.swift */,
+				A2000015 /* BackgroundManager.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -336,6 +339,7 @@
 				A1000008 /* LogManager.swift in Sources */,
 				A1000009 /* SettingsStore.swift in Sources */,
 				A100000A /* Theme.swift in Sources */,
+				A100000D /* BackgroundManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

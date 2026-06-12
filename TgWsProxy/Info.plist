@@ -57,6 +57,11 @@
     <array>
         <string>voip</string>
         <string>processing</string>
+        <string>audio</string>
+        <string>bluetooth-central</string>
+        <string>external-accessory</string>
     </array>
+    <key>UIVOIPBackgroundModes</key>
+    <true/>
 </dict>
 </plist>

@@ -57,6 +57,7 @@ class ProxyManager: ObservableObject {
         if result == 0 {
             DispatchQueue.main.async {
                 self.isRunning = true
+                BackgroundManager.shared.startBackgroundTask()
             }
             startStatsPolling()
             return true
@@ -71,6 +72,7 @@ class ProxyManager: ObservableObject {
             DispatchQueue.main.async {
                 self.isRunning = false
                 self.stats = ProxyStats()
+                BackgroundManager.shared.stopBackgroundTask()
             }
         }
         stopStatsPolling()
