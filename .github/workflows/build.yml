@@ -6,46 +6,69 @@ on:
 jobs:
   build:
     runs-on: macos-14
-    
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
     - name: Setup Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v4
       with:
-        go-version: 'stable'
+        go-version: '1.20'
 
-    - name: Build for iOS device
+    - name: Build XCFramework
       run: |
-        mkdir -p build/ios
+        mkdir -p build/ios build/sim
+        SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+        CC_PATH=$(xcrun --sdk iphoneos -f clang)
         CGO_ENABLED=1 GOOS=ios GOARCH=arm64 \
-          CC=$(xcrun --sdk iphoneos -f clang) \
-          CFLAGS="-isysroot $(xcrun --sdk iphoneos --show-sdk-path) -arch arm64 -mios-version-min=16.0" \
+          CC="$CC_PATH" \
+          CGO_CFLAGS="-isysroot $SDK_PATH -arch arm64 -mios-version-min=16.0" \
+          CGO_LDFLAGS="-isysroot $SDK_PATH -arch arm64 -mios-version-min=16.0" \
           go build -v -buildmode=c-archive -o build/ios/libtgwsproxy.a .
 
-    - name: Build for iOS Simulator
-      run: |
-        mkdir -p build/sim
+        SIM_SDK_PATH=$(xcrun --sdk iphonesimulator --show-sdk-path)
+        SIM_CC_PATH=$(xcrun --sdk iphonesimulator -f clang)
         CGO_ENABLED=1 GOOS=ios GOARCH=arm64 \
-          CC=$(xcrun --sdk iphonesimulator -f clang) \
-          CFLAGS="-isysroot $(xcrun --sdk iphonesimulator --show-sdk-path) -arch arm64 -mios-simulator-version-min=16.0" \
+          CC="$SIM_CC_PATH" \
+          CGO_CFLAGS="-isysroot $SIM_SDK_PATH -arch arm64 -mios-simulator-version-min=16.0" \
+          CGO_LDFLAGS="-isysroot $SIM_SDK_PATH -arch arm64 -mios-simulator-version-min=16.0" \
           go build -v -buildmode=c-archive -o build/sim/libtgwsproxy.a .
 
-    - name: Create XCFramework
-      run: |
         xcodebuild -create-xcframework \
           -library build/ios/libtgwsproxy.a -headers include \
           -library build/sim/libtgwsproxy.a -headers include \
           -output build/TgWsProxy.xcframework
 
-    - name: Package XCFramework
+    - name: Build .app
       run: |
-        cd build
-        zip -r ../TgWsProxy-XCFramework.zip TgWsProxy.xcframework
+        xcodebuild archive \
+          -project TgWsProxy.xcodeproj \
+          -scheme TgWsProxy \
+          -configuration Release \
+          -archivePath build/TgWsProxy.xcarchive \
+          CODE_SIGN_IDENTITY="-" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO \
+          AD_HOC_CODE_SIGNING_ALLOWED=YES \
+          "LIBRARY_SEARCH_PATHS=$(pwd)/build/ios" \
+          "OTHER_LDFLAGS=$(pwd)/build/ios/libtgwsproxy.a"
+
+    - name: Create .ipa
+      run: |
+        mkdir -p build/ipa/Payload
+        cp -r build/TgWsProxy.xcarchive/Products/Applications/TgWsProxy.app build/ipa/Payload/
+        cd build/ipa
+        zip -r ../TgWsProxy.ipa Payload/
+
+    - name: Upload IPA
+      uses: actions/upload-artifact@v4
+      with:
+        name: TgWsProxy-ipa
+        path: build/TgWsProxy.ipa
 
     - name: Upload XCFramework
       uses: actions/upload-artifact@v4
       with:
         name: TgWsProxy-XCFramework
-        path: TgWsProxy-XCFramework.zip
+        path: build/TgWsProxy.xcframework
