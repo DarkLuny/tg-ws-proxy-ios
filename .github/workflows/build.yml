@@ -1,0 +1,71 @@
+name: Build iOS App
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.20'
+
+    - name: Show Go version
+      run: go version
+
+    - name: Build XCFramework
+      run: |
+        mkdir -p build/ios build/sim
+        CGO_ENABLED=1 GOOS=ios GOARCH=arm64 \
+          CC=$(xcrun --sdk iphoneos -f clang) \
+          CFLAGS="-isysroot $(xcrun --sdk iphoneos --show-sdk-path) -arch arm64 -mios-version-min=16.0" \
+          go build -v -buildmode=c-archive -o build/ios/libtgwsproxy.a .
+        CGO_ENABLED=1 GOOS=ios GOARCH=arm64 \
+          CC=$(xcrun --sdk iphonesimulator -f clang) \
+          CFLAGS="-isysroot $(xcrun --sdk iphonesimulator --show-sdk-path) -arch arm64 -mios-simulator-version-min=16.0" \
+          go build -buildmode=c-archive -o build/sim/libtgwsproxy.a .
+        xcodebuild -create-xcframework \
+          -library build/ios/libtgwsproxy.a -headers include \
+          -library build/sim/libtgwsproxy.a -headers include \
+          -output build/TgWsProxy.xcframework
+
+    - name: Build .app
+      run: |
+        xcodebuild archive \
+          -project TgWsProxy.xcodeproj \
+          -scheme TgWsProxy \
+          -configuration Release \
+          -archivePath build/TgWsProxy.xcarchive \
+          CODE_SIGN_IDENTITY="-" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO \
+          AD_HOC_CODE_SIGNING_ALLOWED=YES
+
+    - name: Create .ipa
+      run: |
+        mkdir -p build/ipa/Payload
+        cp -r build/TgWsProxy.xcarchive/Products/Applications/TgWsProxy.app build/ipa/Payload/
+        cd build/ipa
+        zip -r ../TgWsProxy.ipa Payload/
+        cd ../..
+        echo "IPA size: $(du -sh build/TgWsProxy.ipa | cut -f1)"
+
+    - name: Upload IPA
+      uses: actions/upload-artifact@v4
+      with:
+        name: TgWsProxy-ipa
+        path: build/TgWsProxy.ipa
+
+    - name: Upload XCFramework
+      uses: actions/upload-artifact@v4
+      with:
+        name: TgWsProxy-XCFramework
+        path: build/TgWsProxy.xcframework
